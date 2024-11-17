@@ -229,7 +229,7 @@ public class RobotInterface : MonoBehaviour
             }
 
             retryCount++;
-            yield return new WaitForSeconds(10);
+            yield return new WaitForSeconds(30);
         }
         // 최대 재시도 횟수 초과 시 컴퓨터 재부팅
         RestartComputer();
