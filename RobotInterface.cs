@@ -229,7 +229,7 @@ public class RobotInterface : MonoBehaviour
             }
 
             retryCount++;
-            yield return new WaitForSeconds(30);
+            yield return new WaitForSeconds(30);    // 포트 재시도 간격 30s
         }
         // 최대 재시도 횟수 초과 시 컴퓨터 재부팅
         RestartComputer();
@@ -506,7 +506,7 @@ public class RobotInterface : MonoBehaviour
         // 받은 데이터 필터링, 상태 변수 업데이트
         Debug.Log("Received data: " + data);
 
-        if (data.Contains("HeadOut"))
+        if (data.Contains("HeadA"))
         {
             playerA.Hit = true;
         }
