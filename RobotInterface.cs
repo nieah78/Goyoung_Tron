@@ -14,6 +14,28 @@ public enum GameState { // 게임 페이즈 구조 변경
     EndGame
 }
 
+    public class Timer {
+        public float Value {get; private set;}
+        public bool IsFinished => Value <= 0;
+
+        public Timer(float initialValue){
+            Value = initialValue
+        }
+
+        // 프레임마다 타이머 업데이트
+        public void Update(float deltaTime){
+            if(Value > 0){
+                Value -= deltaTime;
+            }
+        }
+
+        // 타이머 초기화
+        public void Reset(float newValue){
+            Value = newValue;
+        }
+    }
+
+
 public class RobotInterface : MonoBehaviour
 {
     private GameState currentState;
@@ -410,6 +432,10 @@ public class RobotInterface : MonoBehaviour
             phase.showCountdownTimer = (int)Math.Ceiling(phase.countdownTimer);
             countdownTimerGameGoingText.text = countdownTimerText.text = phase.showCountdownTimer.ToString();
         }
+
+        playerA.damagedTimer.Update(Timer.deltaTime);
+        playerB.damagedTimer.Update(Timer.deltaTime);
+
 
         if(playerA.damagedTimer > 0.0) {
             playerA.damagedTimer -= Time.deltaTime;
