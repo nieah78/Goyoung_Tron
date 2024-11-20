@@ -14,26 +14,59 @@ public enum GameState { // 게임 페이즈 구조 변경
     EndGame
 }
 
-    public class Timer {
-        public float Value {get; private set;}
-        public bool IsFinished => Value <= 0;
+public class Timer {
+    public float Value {get; private set;}
+    public bool IsFinished => Value <= 0;
 
-        public Timer(float initialValue){
-            Value = initialValue;
-        }
+    public Timer(float initialValue){
+        Value = initialValue;
+    }
 
-        // 프레임마다 타이머 업데이트
-        public void Update(float deltaTime){
-            if(Value > 0){
-                Value -= deltaTime;
-            }
-        }
-
-        // 타이머 초기화
-        public void Reset(float newValue){
-            Value = newValue;
+    // 프레임마다 타이머 업데이트
+    public void Update(float deltaTime){
+        if(Value > 0){
+            Value -= deltaTime;
         }
     }
+
+    // 타이머 초기화
+    public void Reset(float newValue){
+        Value = newValue;
+    }
+}
+
+public class Player {
+    public float HP { get; set; }
+    public int Bullet { get; set; }
+    public bool Winner { get; set; }
+
+    // 타이머와 상태 변수들
+    public Timer DamagedTimer { get; private set; }
+    public Timer ShotDelayTimer { get; private set; }
+    public Timer DepletedSoundTimer { get; private set; }
+    public Timer HitEffectTimer { get; private set; }
+
+    public bool Hit { get; set; }
+    public bool Shoot { get; set; }
+
+    public Player{
+        HP = 100;
+        Bullet = 20;
+        Winner = false;
+
+        DamagedTimer = new Timer(0);
+        ShotDelayTimer = new Timer(0);
+        DepletedSoundTimer - new Timer(0);
+        HitEffectTimer = new Timer(0);
+    }
+
+    public void update(float deltaTime){
+        DamagedTimer.Update(deltaTime);
+        ShotDelayTimer.Update(deltaTime);
+        DelpetedSoundTimer.Update(deltaTime);
+        HitEffectTimer.Update(deltaTime);
+    }
+}
 
 
 public class RobotInterface : MonoBehaviour
@@ -62,35 +95,37 @@ public class RobotInterface : MonoBehaviour
     
     struct Phase
     {
-        public int step;
         public double countdownTimer;
         public int showCountdownTimer;
     }
-    struct PlayerStatus
-    {   
-        public float hp;
-        public int bullet;
-        public int left;
-        public int selected;
+    // struct PlayerStatus
+    // {   
+    //     public float hp;
+    //     public int bullet;
 
-        //public int lastDamagedIndex;
-        public float damagedTimer;
+    //     public float damagedTimer;
         
+    //     public byte shotCommand;
 
-        public float shotDelay;
-        public byte shotCommand;
+    //     public float depletedSoundDelay;
+    //     public bool winner;
 
-        public float depletedSoundDelay;
-        public bool winner;
+    //     public float hitEffectTimer;
 
-        public float hitEffectTimer;
-
-        public bool Hit;
-        public bool Shoot;
-    }
+    //     public bool Hit;
+    //     public bool Shoot;
+    // }
 
 
     PlayerStatus playerA, playerB;
+    private void initPlayers(){
+        playerA = new Player();
+        playerB = new Player();
+
+        A_flag = true;
+        B_flag = true;
+        C_flag = true;
+    }
 
     Phase phase;
     GameObject countdownTimer, countdownTimerGameGoing;
@@ -113,9 +148,6 @@ public class RobotInterface : MonoBehaviour
     
     float bgmWaitTimer = 0;
     int countCheck = 0;
-
-    private bool isFirstInGameFrame = true;
-
 
     // 포트에서 데이터 읽기 함수 (스레드에서 실행)
     private void ReadSerialPorts()
@@ -394,6 +426,10 @@ public class RobotInterface : MonoBehaviour
             return; // 포트가 연결될 때까지 Update 함수 중단
         }
 
+        float deltaTime = Time.deltaTime;
+        playerA.Update(deltaTime);
+        playerB.Update(deltaTime);
+
         lock (dataQueue){
             while (dataQueue.Count > 0){
                 string data = dataQueue.Dequeue();
@@ -432,33 +468,29 @@ public class RobotInterface : MonoBehaviour
             countdownTimerGameGoingText.text = countdownTimerText.text = phase.showCountdownTimer.ToString();
         }
 
-        playerA.damagedTimer.Update(Timer.deltaTime);
-        playerB.damagedTimer.Update(Timer.deltaTime);
-
-
         if(playerA.damagedTimer > 0.0) {
             playerA.damagedTimer -= Time.deltaTime;
         }
         if(playerB.damagedTimer > 0.0) {
             playerB.damagedTimer -= Time.deltaTime;
         }
-        if(playerA.shotDelay > 0.0) {
-            playerA.shotDelay -= Time.deltaTime;
+        if(playerA.ShotDelayTimer > 0.0) {
+            playerA.ShotDelayTimer -= Time.deltaTime;
         }
-        if(playerB.shotDelay > 0.0) {
-            playerB.shotDelay -= Time.deltaTime;
+        if(playerB.ShotDelayTimer > 0.0) {
+            playerB.ShotDelayTimer -= Time.deltaTime;
         }
-        if(playerA.depletedSoundDelay > 0.0) {
-            playerA.depletedSoundDelay -= Time.deltaTime;
+        if(playerA.DepletedSoundTimer > 0.0) {
+            playerA.DepletedSoundTimer -= Time.deltaTime;
         }
-        if(playerB.depletedSoundDelay > 0.0) {
-            playerB.depletedSoundDelay -= Time.deltaTime;
+        if(playerB.DepletedSoundTimer > 0.0) {
+            playerB.DepletedSoundTimer -= Time.deltaTime;
         }
 
         if(true) {
-            if(playerA.hitEffectTimer > 0.0) {
-                playerA.hitEffectTimer -= Time.deltaTime * 12f;
-                if((int)playerA.hitEffectTimer % 2 == 0) {
+            if(playerA.HitEffectTimer > 0.0) {
+                playerA.HitEffectTimer -= Time.deltaTime * 12f;
+                if((int)playerA.HitEffectTimer % 2 == 0) {
                     hpBarImage1.color = hpBarColorHit;
                 } else {
                     hpBarImage1.color = hpBarColor;
@@ -469,9 +501,9 @@ public class RobotInterface : MonoBehaviour
                 hpBarImage1.color = hpBarColor;
             }
 
-            if(playerB.hitEffectTimer > 0.0) {
-                playerB.hitEffectTimer -= Time.deltaTime * 12f;
-                if((int)playerB.hitEffectTimer % 2 == 0) {
+            if(playerB.HitEffectTimer > 0.0) {
+                playerB.HitEffectTimer -= Time.deltaTime * 12f;
+                if((int)playerB.HitEffectTimer % 2 == 0) {
                     hpBarImage2.color = hpBarColorHit;
                 } else {
                     hpBarImage2.color = hpBarColor;
@@ -492,9 +524,6 @@ public class RobotInterface : MonoBehaviour
                 break;
 
             case GameState.InGame:
-                if (isFirstInGameFrame){
-                    isFirstInGameFrame = false;
-                }
                 HandleInGameState();
                 break;
                 
@@ -587,8 +616,6 @@ public class RobotInterface : MonoBehaviour
         //phase.countdownTimer = 5;
         playerA.bullet = 20;
         playerB.bullet = 20;
-        playerA.shotCommand = 11;
-        playerB.shotCommand = 10;
         audioTransitionFlag = true;
         bgmStatStopFlag = true;
         bgmBattlePlayFlag = true;
@@ -644,22 +671,22 @@ public class RobotInterface : MonoBehaviour
     void HandlePlayerA()
     {
         // 발사 버튼 처리
-        if (playerA.Shoot && playerA.shotDelay < 0.1f && playerA.bullet > 0) // 올바른 발사
+        if (playerA.Shoot && playerA.ShotDelayTimer < 0.1f && playerA.bullet > 0) // 올바른 발사
         {
             portC.WriteLine("ShootA");
-            playerA.shotDelay = 3.0f;
+            playerA.ShotDelayTimer = 3.0f;
             playerA.bullet--;
             Debug.Log("A 발사");
         }
-        else if (playerA.Shoot && playerA.bullet <= 0 && playerA.depletedSoundDelay <= 0) // 총알 없음
+        else if (playerA.Shoot && playerA.bullet <= 0 && playerA.DepletedSoundTimer <= 0) // 총알 없음
         {
             audioDepletedFlag = true;
-            playerA.depletedSoundDelay = 1;
+            playerA.DepletedSoundTimer = 1;
             Debug.Log("A 총알 없음1");
         }
-        else if (playerA.Shoot && playerA.bullet <= 0 && playerA.depletedSoundDelay > 0) // 총알 없음 + 오디오 출력중
+        else if (playerA.Shoot && playerA.bullet <= 0 && playerA.DepletedSoundTimer > 0) // 총알 없음 + 오디오 출력중
         {
-            playerA.depletedSoundDelay = 1;
+            playerA.DepletedSoundTimer = 1;
             Debug.Log("A 총알 없음2");
         }
         playerA.Shoot = false;
@@ -672,22 +699,22 @@ public class RobotInterface : MonoBehaviour
     void HandlePlayerB()
     {
         // 발사 버튼 처리
-        if (playerB.Shoot && playerB.shotDelay < 0.1f && playerB.bullet > 0) 
+        if (playerB.Shoot && playerB.ShotDelayTimer < 0.1f && playerB.bullet > 0) 
         {
             portC.WriteLine("ShootB");
-            playerB.shotDelay = 3.0f;
+            playerB.ShotDelayTimer = 3.0f;
             playerB.bullet--;
             Debug.Log("B 발사");
         }
-        else if (playerB.Shoot && playerB.bullet <= 0 && playerB.depletedSoundDelay <= 0) 
+        else if (playerB.Shoot && playerB.bullet <= 0 && playerB.DepletedSoundTimer <= 0) 
         {
             audioDepletedFlag = true;
-            playerB.depletedSoundDelay = 1;
+            playerB.DepletedSoundTimer = 1;
             Debug.Log("B 총알 없음1");
         }
-        else if (playerB.Shoot && playerB.bullet <= 0 && playerB.depletedSoundDelay > 0) // 총알 없음 + 오디오 출력중
+        else if (playerB.Shoot && playerB.bullet <= 0 && playerB.DepletedSoundTimer > 0) // 총알 없음 + 오디오 출력중
         {
-            playerB.depletedSoundDelay = 1;
+            playerB.DepletedSoundTimer = 1;
             Debug.Log("B 총알 없음2");
         }
         playerB.Shoot = false;
@@ -771,7 +798,7 @@ public class RobotInterface : MonoBehaviour
                 playerA.hp -= GENERAL_DAMAGE;
                 playerA.damagedTimer = 0.75f;  // 일정 시간 동안 다시 맞지 않도록 설정
                 audioHitFlag = true;  // 맞았을 때 소리 재생 플래그
-                playerA.hitEffectTimer = 15f;  // 시각적 효과 타이머
+                playerA.HitEffectTimer = 15f;  // 시각적 효과 타이머
             }   
             else if(playerB.Hit && playerB.damagedTimer < 0.1f) {
                 playerB.Hit = false;
@@ -779,23 +806,9 @@ public class RobotInterface : MonoBehaviour
                 playerB.hp -= GENERAL_DAMAGE;
                 playerB.damagedTimer = 0.75f;
                 audioHitFlag = true;
-                playerB.hitEffectTimer = 15f;
+                playerB.HitEffectTimer = 15f;
             }
         }
-    }
-
-    private void initPlayers(){
-        playerA = new PlayerStatus();
-        playerB = new PlayerStatus();
-        playerA.bullet = playerB.bullet = 1;
-        playerA.hp = playerB.hp = MAX_HP;
-        playerA.left = playerB.left = 10;
-        playerA.selected = playerB.selected = 0;
-        playerA.winner = false;
-        playerB.winner = false;
-        A_flag = true;
-        B_flag = true;
-        C_flag = true;
     }
 
     void OnDestroy(){
@@ -804,6 +817,9 @@ public class RobotInterface : MonoBehaviour
             isRunning = false;
             serialThread.Join();  // 스레드 종료 대기
         }
+        portA.WriteLine("PortOut");
+        portB.WriteLine("PortOut");
+        portC.WriteLine("PortOut");
 
         if (portA != null && portA.IsOpen) portA.Close();
         if (portB != null && portB.IsOpen) portB.Close();
