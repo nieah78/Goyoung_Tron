@@ -19,7 +19,7 @@ public enum GameState { // 게임 페이즈 구조 변경
         public bool IsFinished => Value <= 0;
 
         public Timer(float initialValue){
-            Value = initialValue
+            Value = initialValue;
         }
 
         // 프레임마다 타이머 업데이트
@@ -67,8 +67,7 @@ public class RobotInterface : MonoBehaviour
         public int showCountdownTimer;
     }
     struct PlayerStatus
-    {
-        public int agility;
+    {   
         public float hp;
         public int bullet;
         public int left;
@@ -788,7 +787,6 @@ public class RobotInterface : MonoBehaviour
     private void initPlayers(){
         playerA = new PlayerStatus();
         playerB = new PlayerStatus();
-        playerA.agility = playerB.agility = 1;
         playerA.bullet = playerB.bullet = 1;
         playerA.hp = playerB.hp = MAX_HP;
         playerA.left = playerB.left = 10;
