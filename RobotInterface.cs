@@ -551,6 +551,8 @@ public class RobotInterface : MonoBehaviour
             portB.WriteLine("Countdown");
             portC.WriteLine("ledon");
 
+            initPlayers();
+
             SetState(GameState.Countdown);  // 카운트다운 상태로 전환
             phase.countdownTimer = 5;
             countdownTimer.SetActive(true);
