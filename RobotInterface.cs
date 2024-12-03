@@ -23,7 +23,7 @@ public class RobotInterface : MonoBehaviour
     const int GENERAL_DAMAGE = 18;
 
     private SerialPort portA, portB, portC;  // 각각 JoyA, JoyB, Compressor에 대응
-    private  const int maxRetryCount = 10; // 재시도 횟수
+    private  const int maxRetryCount = 100; // 재시도 횟수
     private int retryCount = 1;
     private Thread serialThread;
     private bool isRunning;
@@ -220,7 +220,7 @@ public class RobotInterface : MonoBehaviour
             }
 
             retryCount++;
-            yield return new WaitForSeconds(30);    // 포트 재시도 간격 30s
+            yield return new WaitForSeconds(5);    // 포트 재시도 간격 30s
         }
         // 최대 재시도 횟수 초과 시 컴퓨터 재부팅
         RestartComputer();
