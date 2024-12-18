@@ -711,6 +711,7 @@ public class RobotInterface : MonoBehaviour
                 Debug.Log("DRAW!!");
                 portA.WriteLine("Lose");
                 portB.WriteLine("Lose");
+                portC.WriteLine("Clear");
             }
         }
     }
