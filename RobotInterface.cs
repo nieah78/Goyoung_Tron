@@ -693,6 +693,7 @@ public class RobotInterface : MonoBehaviour
                 Debug.Log("playerA WIN!!");
                 portA.WriteLine("Win");
                 portB.WriteLine("Lose");
+                portC.WriteLine("Clear");
             }
         }
         else if(playerB.winner){
@@ -701,6 +702,7 @@ public class RobotInterface : MonoBehaviour
                 Debug.Log("playerB WIN!!");
                 portA.WriteLine("Lose");
                 portB.WriteLine("Win");
+                portC.WriteLine("Clear");
             }
         }
         else{
